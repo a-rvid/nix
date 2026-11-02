@@ -67,7 +67,6 @@
           "/var/lib/bluetooth"
           "/var/lib/systemd"
           "/var/log"
-          "/var/lib/sops-nix"
         ];
 
         users.${config.my.username}.directories = [

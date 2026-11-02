@@ -23,6 +23,6 @@
     gaming.enable = lib.mkEnableOption "Steam and gaming support";
     nvidia.enable = lib.mkEnableOption "NVIDIA GPU support";
     preservation.enable = lib.mkEnableOption "ephemeral root with preserved state";
-    secrets.enable = lib.mkEnableOption "sops-nix secrets";
+    secrets.enable = lib.mkEnableOption "agenix secrets";
   };
 }

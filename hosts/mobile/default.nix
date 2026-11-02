@@ -2,7 +2,6 @@
 {
   imports = [
     inputs.disko.nixosModules.disko
-    inputs.sops-nix.nixosModules.sops
     inputs.nixos-hardware.nixosModules.asus-zephyrus-ga401
     ./hardware.nix
     ./disko.nix

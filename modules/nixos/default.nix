@@ -1,6 +1,7 @@
 { inputs, ... }:
 {
   imports = [
+    inputs.agenix.nixosModules.default
     inputs.preservation.nixosModules.default
     ../options.nix
     ./boot.nix

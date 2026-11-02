@@ -14,8 +14,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
+    agenix = {
+      url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -65,9 +65,14 @@
 
       packages.${system} = {
         hyprland = pkgs.hyprland;
+        agenix = inputs.agenix.packages.${system}.agenix;
       };
 
       apps.${system} = {
+        agenix = {
+          type = "app";
+          program = "${inputs.agenix.packages.${system}.agenix}/bin/agenix";
+        };
         link = {
           type = "app";
           program = "${linkDotfiles}/bin/link-dotfiles";
@@ -77,15 +82,19 @@
       formatter.${system} = pkgs.nixfmt-rfc-style;
 
       devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          age
-          nixd
-          nixfmt-rfc-style
-          nh
-          hyprland
-          sops
-          stow
-        ];
+        packages =
+          with pkgs;
+          [
+            age
+            nixd
+            nixfmt-rfc-style
+            nh
+            hyprland
+            stow
+          ]
+          ++ [
+            inputs.agenix.packages.${system}.agenix
+          ];
       };
     };
 }

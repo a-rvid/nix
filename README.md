@@ -18,7 +18,7 @@ hosts/mobile/             first host: ASUS ROG Zephyrus G14
 hosts/_template/          copy this to add a device (not built)
 home/common/              plain dotfiles, deployed with GNU Stow
 scripts/link-dotfiles.sh  stow wrapper
-secrets/                  sops-nix encrypted secrets
+secrets/                  agenix-encrypted secrets
 ```
 
 ## Bootstrap Nix on Fedora
@@ -87,14 +87,14 @@ Shared behavior is controlled with `my.*`:
 | `my.gaming.enable` | Steam, gamemode, gamescope, 32-bit graphics |
 | `my.nvidia.enable` | NVIDIA driver and modesetting |
 | `my.preservation.enable` | ephemeral RAM root with selected paths preserved to `/persist` |
-| `my.secrets.enable` | sops-nix defaults |
+| `my.secrets.enable` | agenix secrets |
 
 Per-host dotfiles can be added under `home/<name>/`; the link script stows it
 after `home/common/`.
 
 When enabled on `mobile`, `/` and `/home` are volatile tmpfs. `/persist` and
 `/nix` are disk-backed. Preservation keeps machine identity, system state,
-SSH keys, secrets state, and (when gaming is enabled) Steam data across boots.
+SSH keys, and (when gaming is enabled) Steam data across boots.
 The `@volatile` Btrfs subvolume is mounted at `/volatile`; `/tmp` and
 `/home/<user>/Downloads` bind to `/volatile/tmp` and
 `/volatile/home/<user>/Downloads`. Those contents are cleared at boot.
@@ -104,21 +104,22 @@ anything needed before switching an existing installation to this layout.
 
 ## Secrets
 
-`sops-nix` is wired but **no secrets are active yet**, so builds do not need a
-key. To set up the admin key:
+The agenix recipient in `agenix-rules.nix` is the supplied SSH Ed25519 public
+key. Encrypt or edit a secret with:
 
 ```sh
-mkdir -p ~/.config/sops/age
-nix shell nixpkgs#age -c age-keygen -o ~/.config/sops/age/keys.txt
-chmod 600 ~/.config/sops/age/keys.txt
-# put the public key in .sops.yaml, then:
-nix shell nixpkgs#sops -c sops -e -i secrets/common.yaml
+nix run .#agenix -- -e secrets/common.age
 ```
 
-Back up `~/.config/sops/age/keys.txt` outside the repo. At install time copy it
-to `/var/lib/sops-nix/key.txt` (root, mode 600). For each new device, generate
-its own key, add its public key to `.sops.yaml`, and run
-`sops updatekeys secrets/*.yaml`.
+On NixOS, agenix decrypts with `/home/<user>/.ssh/id_ed25519`; with preservation
+enabled, it reads the persistent source at `/persist/home/<user>/.ssh/id_ed25519`
+directly. The matching private key must be securely copied to the target before
+the first activation; never commit or share it. For `mobile`, place it at
+`/persist/home/user/.ssh/id_ed25519` with owner `user` and mode `0600` so it is
+available before agenix starts. Builds do not need the private key.
+
+For another host or administrator, add its SSH public key to
+`agenix-rules.nix`, then re-encrypt secrets using `nix run .#agenix -- -r`.
 
 ## Installing later
 

@@ -43,8 +43,10 @@ with `_`.
 5. Optionally add host-specific dotfiles under `home/<name>/`. The link script
    stows `home/common` first, then `home/<name>`.
 
-6. If the host uses secrets, add its age public key to `.sops.yaml` and run
-   `sops updatekeys secrets/*.yaml`.
+6. If the host uses agenix secrets, ensure the matching private key is available
+   before first activation (under `/persist/home/<user>/.ssh/` when preservation
+   is enabled, otherwise `/home/<user>/.ssh/`), and add its SSH public key to
+   `agenix-rules.nix`. Re-encrypt existing secrets with `nix run .#agenix -- -r`.
 
 The new host appears automatically:
 

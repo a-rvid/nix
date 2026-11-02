@@ -57,7 +57,7 @@ with `_`. Each becomes `nixosConfigurations.<name>` via `mkHost`, which evaluate
 `hosts/_template` is documentation and is **not** a buildable host. Copy it to add
 a device. A host's `default.nix` owns only:
 
-- imports of `nixos-hardware` profiles and the disko/sops-nix modules;
+- imports of `nixos-hardware` profiles and the disko module;
 - the bootloader, hostname, and `system.stateVersion`;
 - `imports = [ ./hardware.nix ./disko.nix ../../modules/nixos ]`;
 - its `my.*` values.
@@ -100,11 +100,11 @@ through NixOS at `/etc/hypr/hyprland.conf`; rebuild to apply changes.
 
 ### Secrets
 
-`sops-nix` is wired but **no `sops.secrets` entries exist yet**. The module sets
-`defaultSopsFile` and `age.keyFile = "/var/lib/sops-nix/key.txt"`. Until the admin
-age key exists and `secrets/common.yaml` is encrypted, `secrets/common.yaml` is a
-plaintext placeholder and `.sops.yaml` contains a placeholder recipient. Generate
-the key and encrypt as described in `README.md`.
+Secrets use agenix. `agenix-rules.nix` contains the SSH public-key recipients;
+the matching private key must be available before first activation. With
+preservation enabled, agenix reads it directly from
+`/persist/home/<user>/.ssh/id_ed25519`; otherwise it reads
+`/home/<user>/.ssh/id_ed25519`.
 
 ### Disko
 
@@ -121,6 +121,5 @@ apply this config on the current Fedora system.
 - `my.username` is `user` on `mobile` and is only a placeholder.
 - The repo deliberately has no flake-parts, Home Manager, `just`, VM/ISO outputs,
   or validation app; preserve that unless the user asks otherwise.
-- The age private key lives at `~/.config/sops/age/keys.txt`, outside this repo;
-  `secrets/common.yaml` must be encrypted with sops before any `sops.secrets`
-  entry is added.
+- Agenix secrets are encrypted to SSH public keys in `agenix-rules.nix`; private
+  keys must remain outside the repository.

@@ -14,8 +14,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    agenix = {
-      url = "github:ryantm/agenix";
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -52,14 +52,9 @@
 
       packages.${system} = {
         inherit qs;
-        agenix = inputs.agenix.packages.${system}.agenix;
       };
 
       apps.${system} = {
-        agenix = {
-          type = "app";
-          program = "${inputs.agenix.packages.${system}.agenix}/bin/agenix";
-        };
         qs = {
           type = "app";
           program = "${qs}/bin/qs";
@@ -78,9 +73,7 @@
             nh
             hyprland
           ]
-          ++ [
-            inputs.agenix.packages.${system}.agenix
-          ];
+          ++ [ pkgs.sops ];
       };
     };
 }

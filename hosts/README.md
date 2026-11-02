@@ -40,10 +40,14 @@ with `_`.
    erases the target disk.** With `my.preservation.enable`, root is a RAM
    filesystem; only declared paths under `/persist` survive reboots.
 
-5. If the host uses agenix secrets, ensure the matching private key is available
+5. If the host uses SOPS-Nix secrets, ensure the matching private key is available
    before first activation (under `/persist/home/<user>/.ssh/` when preservation
-   is enabled, otherwise `/home/<user>/.ssh/`), and add its SSH public key to
-   `agenix-rules.nix`. Re-encrypt existing secrets with `nix run .#agenix -- -r`.
+   is enabled, otherwise `/home/<user>/.ssh/`), and add its age recipient to
+   `.sops.yaml`.
+
+6. Put host-specific NetworkManager profiles in
+   `hosts/<name>/networkmanager.nix`; keep passwords and private keys in
+   SOPS-encrypted files under `secrets/`.
 
 The new host appears automatically:
 

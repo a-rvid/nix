@@ -102,11 +102,11 @@ through NixOS at `/etc/hypr/hyprland.conf`; rebuild to apply changes.
 
 ### Secrets
 
-Secrets use agenix. `agenix-rules.nix` contains the SSH public-key recipients;
-the matching private key must be available before first activation. With
-preservation enabled, agenix reads it directly from
-`/persist/home/<user>/.ssh/id_ed25519`; otherwise it reads
-`/home/<user>/.ssh/id_ed25519`.
+Secrets use SOPS-Nix. `.sops.yaml` contains the age recipient; the matching SSH
+private key must be available before activation. With preservation enabled,
+SOPS-Nix reads it from `/persist/home/<user>/.ssh/id_ed25519`; otherwise it
+reads `/home/<user>/.ssh/id_ed25519`. NetworkManager profiles and secret-agent
+file mappings are host-specific in `hosts/<name>/networkmanager.nix`.
 
 ### Disko
 
@@ -123,5 +123,5 @@ apply this config on the current Fedora system.
 - `my.username` is `user` on `nvidia` and is only a placeholder.
 - The repo deliberately has no flake-parts, Home Manager, `just`, VM/ISO outputs,
   or validation app; preserve that unless the user asks otherwise.
-- Agenix secrets are encrypted to SSH public keys in `agenix-rules.nix`; private
-  keys must remain outside the repository.
+- SOPS-encrypted secrets live under `secrets/`; never commit plaintext secrets
+  or private keys.

@@ -25,6 +25,26 @@ let
   foxyProxySettings = builtins.fromJSON (
     builtins.readFile ../../home/.config/firefox/foxyproxy-basic.json
   );
+
+  configuredEmacs = (pkgs.emacsPackagesFor pkgs.emacs-pgtk).emacsWithPackages (
+    epkgs: with epkgs; [
+      evil
+      evil-commentary
+      geiser
+      lsp-mode
+      magit
+      marginalia
+      nord-theme
+      orderless
+      rustic
+      undo-fu
+      undo-fu-session
+      use-package
+      vertico
+      vertico-posframe
+      vterm
+    ]
+  );
 in
 {
   config = lib.mkMerge [
@@ -53,11 +73,33 @@ in
       programs.direnv.nix-direnv.enable = true;
     }
     (lib.mkIf config.my.desktop.enable {
-      environment.systemPackages = with pkgs; [
+      environment.systemPackages = [
+        configuredEmacs
+      ]
+      ++ (with pkgs; [
         grim
         slurp
         wl-clipboard
-      ];
+      ]);
+
+      system.activationScripts.emacsConfig = {
+        deps = [ "users" ];
+        text = ''
+          userHome=${config.users.users.${config.my.username}.home}
+          initFile="$userHome/.emacs.d/init.el"
+          install -d -o ${config.my.username} \
+            -g ${config.users.users.${config.my.username}.group} \
+            -m 0755 "$userHome/.emacs.d"
+
+          if [ ! -e "$initFile" ] || \
+             { [ -L "$initFile" ] && [[ "$(readlink "$initFile")" == /nix/store/* ]]; }; then
+            ln -sfnT ${../../home/.config/emacs/init.el} "$initFile"
+            chown -h ${config.my.username}:${config.users.users.${config.my.username}.group} "$initFile"
+          else
+            echo "Keeping existing Emacs init file at $initFile" >&2
+          fi
+        '';
+      };
 
       programs.firefox = {
         enable = true;

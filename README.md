@@ -16,9 +16,14 @@ modules/options.nix       my.* options (user, time zone, feature toggles)
 modules/nixos/            shared NixOS modules
 hosts/nvidia/             first host: ASUS ROG Zephyrus G14
 hosts/_template/          copy this to add a device (not built)
-home/.config/             Quickshell source and Firefox configuration assets
-secrets/                  agenix-encrypted secrets
+home/.config/             Quickshell, Emacs, and Firefox configuration
+secrets/                  SOPS-encrypted secrets
 ```
+
+The desktop profile installs Emacs with its packages from nixpkgs. On activation,
+it links `home/.config/emacs/init.el` into `~/.emacs.d/init.el` unless a
+non-Nix-managed init file already exists; `.emacs.d` is preserved across
+reboots.
 
 ## Bootstrap Nix on Fedora
 
@@ -126,7 +131,7 @@ Shared behavior is controlled with `my.*`:
 | `my.gaming.enable` | Steam, gamemode, gamescope, 32-bit graphics |
 | `my.nvidia.enable` | NVIDIA driver and modesetting |
 | `my.preservation.enable` | ephemeral RAM root with selected paths preserved to `/persist` |
-| `my.secrets.enable` | agenix secrets |
+| `my.secrets.enable` | SOPS-Nix secrets |
 
 Command-line tools remain available on every host; Firefox and Wayland desktop
 utilities are installed only when `my.desktop.enable` is enabled.
@@ -141,24 +146,37 @@ Everything else under `/home` is lost at reboot.
 Enabling preservation does not migrate existing files into `/persist`; copy
 anything needed before switching an existing installation to this layout.
 
-## Secrets
+## Secrets and NetworkManager
 
-The agenix recipient in `agenix-rules.nix` is the supplied SSH Ed25519 public
-key. Encrypt or edit a secret with:
+SOPS-Nix decrypts `secrets/networkmanager.yaml` at activation. Its recipient in
+`.sops.yaml` is the age form of the administrator SSH public key; the host uses
+the matching SSH private key from `/persist/home/<user>/.ssh/id_ed25519` when
+preservation is enabled, or `/home/<user>/.ssh/id_ed25519` otherwise. Keep the
+private key outside the repository.
+
+To edit the encrypted file on an administrator machine, create an age identity
+from the SSH key once and keep it outside the repository:
 
 ```sh
-nix run .#agenix -- -e secrets/common.age
+install -d -m 700 ~/.config/sops/age
+nix run nixpkgs#ssh-to-age -- -private-key -i ~/.ssh/id_ed25519 \
+  > ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
+nix run nixpkgs#sops -- secrets/networkmanager.yaml
 ```
 
-On NixOS, agenix decrypts with `/home/<user>/.ssh/id_ed25519`; with preservation
-enabled, it reads the persistent source at `/persist/home/<user>/.ssh/id_ed25519`
-directly. The matching private key must be securely copied to the target before
-the first activation; never commit or share it. For `nvidia`, place it at
-`/persist/home/user/.ssh/id_ed25519` with owner `user` and mode `0600` so it is
-available before agenix starts. Builds do not need the private key.
+`secrets/networkmanager.yaml` contains the migrated credentials for the four
+saved password-protected Wi-Fi profiles and the `segin` WireGuard private key.
+The open `SJ` Wi-Fi profile needs no secret. If credentials change, update the
+flat top-level keys in this encrypted file; do not put credentials in Nix files
+or chat.
 
-For another host or administrator, add its SSH public key to
-`agenix-rules.nix`, then re-encrypt secrets using `nix run .#agenix -- -r`.
+`hosts/nvidia/networkmanager.nix` declares the five saved Wi-Fi profiles and
+the `segin` full-tunnel WireGuard profile, preserving their UUIDs and
+autoconnect settings. NetworkManager's file secret agent reads credentials
+from SOPS-managed files under `/run/secrets`. The current WireGuard profile has
+no peer preshared key; do not reuse the exposed key from the supplied
+`segin.conf` if one is needed later. Builds do not need the decryption key.
 
 ## Installing later
 

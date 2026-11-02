@@ -5,6 +5,7 @@
     inputs.nixos-hardware.nixosModules.asus-zephyrus-ga401
     ./hardware.nix
     ./disko.nix
+    ./networkmanager.nix
     ../../modules/nixos
   ];
 

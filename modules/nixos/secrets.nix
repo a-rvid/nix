@@ -1,7 +1,8 @@
 { config, lib, ... }:
 {
   config = lib.mkIf config.my.secrets.enable {
-    age.identityPaths = [
+    sops.defaultSopsFile = ../../secrets/networkmanager.yaml;
+    sops.age.sshKeyPaths = [
       (
         if config.my.preservation.enable then
           "/persist/home/${config.my.username}/.ssh/id_ed25519"
@@ -9,6 +10,11 @@
           "/home/${config.my.username}/.ssh/id_ed25519"
       )
     ];
-    age.secrets.common.file = ../../secrets/common.age;
+    sops.secrets.user-password-hash = {
+      key = "userPasswordHash";
+      neededForUsers = true;
+    };
+
+    users.users.${config.my.username}.hashedPasswordFile = config.sops.secrets.user-password-hash.path;
   };
 }

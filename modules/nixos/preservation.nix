@@ -75,6 +75,9 @@
             mode = "0700";
           }
         ]
+        ++ lib.optionals config.my.desktop.enable [
+          ".emacs.d"
+        ]
         ++ lib.optionals config.my.gaming.enable [
           ".local/share/Steam"
           ".steam"

@@ -1,0 +1,58 @@
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --theme-surface: #fbf1c7;
+    --theme-foreground: #3c3836;
+    --theme-accent: #b57614;
+    --toolbar-bgcolor: var(--theme-surface) !important;
+    --toolbar-color: var(--theme-foreground) !important;
+    --tab-selected-bgcolor: var(--theme-surface) !important;
+    --lwt-accent-color: var(--theme-surface) !important;
+    --lwt-text-color: var(--theme-foreground) !important;
+    --arrowpanel-background: var(--theme-surface) !important;
+    --arrowpanel-color: var(--theme-foreground) !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --theme-surface: #2e3440;
+    --theme-foreground: #d8dee9;
+    --theme-accent: #88c0d0;
+    --toolbar-bgcolor: var(--theme-surface) !important;
+    --toolbar-color: var(--theme-foreground) !important;
+    --tab-selected-bgcolor: var(--theme-surface) !important;
+    --lwt-accent-color: var(--theme-surface) !important;
+    --lwt-text-color: var(--theme-foreground) !important;
+    --arrowpanel-background: var(--theme-surface) !important;
+    --arrowpanel-color: var(--theme-foreground) !important;
+  }
+}
+
+#navigator-toolbox,
+#TabsToolbar,
+#nav-bar,
+#PersonalToolbar {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-foreground) !important;
+}
+
+#urlbar-background,
+#searchbar {
+  background-color: var(--theme-surface) !important;
+  border-color: var(--theme-accent) !important;
+}
+
+menupopup,
+panel {
+  --panel-background: var(--theme-surface) !important;
+  --panel-color: var(--theme-foreground) !important;
+}
+
+#titlebar-buttonbox-container,
+#titlebar-min,
+#titlebar-max,
+#titlebar-close {
+  display: none !important;
+}

@@ -6,28 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A flake-based, multi-host NixOS configuration. It is **config-only**: do not
 install NixOS, run disko, or modify the running Fedora system. The first host is
-`hosts/mobile`; added hosts are discovered automatically.
+`hosts/nvidia`; added hosts are discovered automatically.
 
 ## Commands
 
 ```sh
 # Evaluate the config without building (fast option/type check)
-nix eval --raw .#nixosConfigurations.mobile.config.networking.hostName
+nix eval --raw .#nixosConfigurations.nvidia.config.networking.hostName
 
 # Full system build (several GB on first run)
-nix build .#nixosConfigurations.mobile.config.system.build.toplevel
+nix build .#nixosConfigurations.nvidia.config.system.build.toplevel
 
-# Stow dotfiles into $HOME
-nix run .#link -- mobile
+# Run Quickshell directly
+nix run .#qs
 
-# Format Nix files (nixfmt-rfc-style)
+# Format tracked Nix files with nixfmt-tree
 nix fmt
 
 # Update all flake inputs
 nix flake update
 
-# Shell-script syntax check
-bash -n scripts/link-dotfiles.sh
 ```
 
 There is no test suite, VM, or ISO by design. The system verification path is
@@ -52,7 +50,8 @@ Without it, `nix-daemon.socket` fails with `Permission denied`.
 
 `flake.nix` discovers every directory under `hosts/` whose name does not start
 with `_`. Each becomes `nixosConfigurations.<name>` via `mkHost`, which evaluates
-`./hosts/<name>` plus `./modules/nixos` with `specialArgs = { inherit inputs; }`.
+`./hosts/<name>` with `specialArgs = { inherit inputs; }`. Each host imports the
+shared `./modules/nixos` modules itself.
 
 `hosts/_template` is documentation and is **not** a buildable host. Copy it to add
 a device. A host's `default.nix` owns only:
@@ -75,10 +74,13 @@ behavior here rather than creating per-host conditionals inside shared modules.
 
 - `core.nix`: Nix settings/GC, NetworkManager, time zone, user/groups, PipeWire,
   libinput, upower, fwupd, power-profiles-daemon, zram, fonts.
-- `desktop.nix`: greetd + tuigreet, Hyprland Wayland compositor, portals, and
-  the Nix-managed `/etc/hypr/hyprland.conf`.
+- `desktop.nix`: greetd + tuigreet, Hyprland Wayland compositor, portals, Foot,
+  and the Nix-managed Hyprland configuration. Quickshell provides the app
+  launcher (`Super+D`) and bar; `Super+Space` toggles floating. Its QML config
+  is read from the immutable flake source in the Nix store. `nix run .#qs`
+  launches it directly.
 - `preservation.nix`: optional tmpfs root and state declarations on `/persist`.
-  `hosts/mobile/disko.nix` provides disk-backed `/persist`, `/nix`, and
+  `hosts/nvidia/disko.nix` provides disk-backed `/persist`, `/nix`, and
   `/volatile` subvolumes. `/tmp` and `/home/<user>/Downloads` bind to paths
   within `/volatile`, which are cleared by a service ordered before those mounts.
 - `gaming.nix`, `nvidia.nix`, `secrets.nix`: gated features.
@@ -88,12 +90,12 @@ The GA401 profile (`inputs.nixos-hardware.nixosModules.asus-zephyrus-ga401`)
 already sets PRIME bus IDs, open kernel modules, modesetting, dynamic boost, and
 `asusd` — do not duplicate those in shared modules.
 
-### Dotfiles
+### Desktop configuration
 
-No Home Manager. `home/common/` is a GNU Stow package that mirrors `$HOME`;
-optional `home/<host>/` packages are stowed after it. `scripts/link-dotfiles.sh`
-uses `stow --no-folding --restow` and only adopts files with an explicit
-`--adopt`.
+The QML source and Firefox assets live in `home/.config/` and are referenced
+directly by their Nix packages. They are not symlinked into `$HOME`; Quickshell
+runs from the Nix store and Firefox receives its managed policy and stylesheet
+from the system configuration.
 
 The Hyprland config is declared in `modules/nixos/desktop.nix` and installed
 through NixOS at `/etc/hypr/hyprland.conf`; rebuild to apply changes.
@@ -108,7 +110,7 @@ preservation enabled, agenix reads it directly from
 
 ### Disko
 
-`hosts/mobile/disko.nix` describes a destructive whole-disk layout (ESP + LUKS +
+`hosts/nvidia/disko.nix` describes a destructive whole-disk layout (ESP + LUKS +
 btrfs) for the machine's NVMe. It is only for installation; never run disko or
 apply this config on the current Fedora system.
 
@@ -118,7 +120,7 @@ apply this config on the current Fedora system.
   host or module, `git add` it (or `git add -N`) before `nix` commands.
 - NixOS 26.05 reaches EOL on 2026-12-31; 26.11 is expected around end of November
   2026. Update the nixpkgs input and rebuild before installing.
-- `my.username` is `user` on `mobile` and is only a placeholder.
+- `my.username` is `user` on `nvidia` and is only a placeholder.
 - The repo deliberately has no flake-parts, Home Manager, `just`, VM/ISO outputs,
   or validation app; preserve that unless the user asks otherwise.
 - Agenix secrets are encrypted to SSH public keys in `agenix-rules.nix`; private

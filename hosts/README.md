@@ -40,10 +40,7 @@ with `_`.
    erases the target disk.** With `my.preservation.enable`, root is a RAM
    filesystem; only declared paths under `/persist` survive reboots.
 
-5. Optionally add host-specific dotfiles under `home/<name>/`. The link script
-   stows `home/common` first, then `home/<name>`.
-
-6. If the host uses agenix secrets, ensure the matching private key is available
+5. If the host uses agenix secrets, ensure the matching private key is available
    before first activation (under `/persist/home/<user>/.ssh/` when preservation
    is enabled, otherwise `/home/<user>/.ssh/`), and add its SSH public key to
    `agenix-rules.nix`. Re-encrypt existing secrets with `nix run .#agenix -- -r`.
@@ -58,4 +55,4 @@ nix build .#nixosConfigurations.<name>.config.system.build.toplevel
 ## Bootloaders
 
 The shared modules do not choose a bootloader. Set it per host. The template and
-`hosts/mobile` use systemd-boot; a BIOS/legacy device can use GRUB instead.
+`hosts/nvidia` use systemd-boot; a BIOS/legacy device can use GRUB instead.

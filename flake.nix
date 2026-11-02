@@ -23,7 +23,7 @@
   };
 
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    { nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -42,29 +42,16 @@
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/${hostName}
-            ./modules/nixos
-          ];
+          modules = [ ./hosts/${hostName} ];
         };
 
-      linkDotfiles = pkgs.writeShellApplication {
-        name = "link-dotfiles";
-        runtimeInputs = [
-          pkgs.bash
-          pkgs.coreutils
-          pkgs.stow
-        ];
-        text = ''
-          exec ${pkgs.bash}/bin/bash ${./scripts/link-dotfiles.sh} "$@"
-        '';
-      };
+      qs = import ./modules/packages/quickshell.nix { inherit pkgs; };
     in
     {
       nixosConfigurations = lib.genAttrs hostNames mkHost;
 
       packages.${system} = {
-        hyprland = pkgs.hyprland;
+        inherit qs;
         agenix = inputs.agenix.packages.${system}.agenix;
       };
 
@@ -73,13 +60,13 @@
           type = "app";
           program = "${inputs.agenix.packages.${system}.agenix}/bin/agenix";
         };
-        link = {
+        qs = {
           type = "app";
-          program = "${linkDotfiles}/bin/link-dotfiles";
+          program = "${qs}/bin/qs";
         };
       };
 
-      formatter.${system} = pkgs.nixfmt-rfc-style;
+      formatter.${system} = pkgs.nixfmt-tree;
 
       devShells.${system}.default = pkgs.mkShell {
         packages =
@@ -87,10 +74,9 @@
           [
             age
             nixd
-            nixfmt-rfc-style
+            nixfmt
             nh
             hyprland
-            stow
           ]
           ++ [
             inputs.agenix.packages.${system}.agenix

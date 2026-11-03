@@ -84,9 +84,8 @@ Item {
         }
 
         onExited: exitCode => {
-            if (exitCode !== 0) {
+            if (exitCode !== 0 || !wifiOutput.text.trim()) {
                 root.wifiSignal = 0;
-                console.warn("Could not query the active Wi-Fi signal strength");
                 return;
             }
 

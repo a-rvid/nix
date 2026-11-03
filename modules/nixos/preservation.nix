@@ -48,6 +48,10 @@
       '';
     };
 
+    systemd.services.systemd-machine-id-commit = {
+      enable = false;
+    };
+
     preservation = {
       enable = true;
       preserveAt."/persist" = {
@@ -77,6 +81,19 @@
         ]
         ++ lib.optionals config.my.desktop.enable [
           ".emacs.d"
+          ".config/mozilla"
+          ".config/spotify"
+          ".cache/spotify"
+          ".bash_history"
+          ".config/VSCodium"
+          ".vscode-oss"
+          ".local/state/VSCodium"
+          "Projects"
+          "Documents"
+          "Pictures"
+          "Videos"
+          "Music"
+
         ]
         ++ lib.optionals config.my.gaming.enable [
           ".local/share/Steam"

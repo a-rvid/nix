@@ -7,14 +7,32 @@
 (add-to-list 'custom-theme-load-path
              (file-name-directory (locate-library "nord-theme")))
 
+(defun my/apply-theme (theme-name)
+  (dolist (theme custom-enabled-themes)
+    (disable-theme theme))
+  (condition-case nil
+      (load-theme (intern theme-name) t)
+    (error
+     (message "Unknown Emacs theme: %s" theme-name))))
+
+(defun my/load-theme-from-state ()
+  (let* ((state-dir (or (getenv "XDG_STATE_HOME")
+                       (expand-file-name ".local/state" (getenv "HOME"))))
+         (theme-file (expand-file-name "theme/current-theme" state-dir))
+         (theme-name (if (file-exists-p theme-file)
+                         (string-trim (with-temp-buffer
+                                        (insert-file-contents theme-file)
+                                        (buffer-string)))
+                       "nord")))
+    (my/apply-theme theme-name)))
+
 (defun my/load-theme-on-frame (frame)
   (with-selected-frame frame
-    (disable-theme 'nord)
-    (load-theme 'nord t)))
+    (my/load-theme-from-state)))
 
 (if (daemonp)
     (add-hook 'after-make-frame-functions #'my/load-theme-on-frame)
-  (load-theme 'nord t))
+  (my/load-theme-from-state))
 
 (setq backup-directory-alist
       `(("." . ,(expand-file-name "backups/" user-emacs-directory)))

@@ -14,6 +14,7 @@ Scope {
         workspace => workspace.toplevels.values.length > 0
     )
     property bool temporarilyRevealed: false
+    property bool barVisible: true
     property bool themePickerVisible: false
     property bool launcherVisible: false
     readonly property var mediaPlayer: {
@@ -32,8 +33,10 @@ Scope {
             console.warn("Ignoring unsupported theme:", name);
             return;
         }
+        if (themeSettings.theme === name)
+            return;
         themeSettings.theme = name;
-        setSystemColorScheme(name);
+        themeSettings.writeAdapter();
     }
 
     function setSystemColorScheme(name) {
@@ -47,7 +50,17 @@ Scope {
         ]);
     }
 
-    onThemeNameChanged: shellRoot.setSystemColorScheme(themeName)
+    function applyTheme(name) {
+        themeApplyProcess.exec([
+            "apply-ui-theme",
+            name
+        ]);
+    }
+
+    onThemeNameChanged: {
+        shellRoot.setSystemColorScheme(themeName);
+        shellRoot.applyTheme(themeName);
+    }
 
     function runPowerAction(command) {
         powerActionProcess.exec(command);
@@ -84,7 +97,18 @@ Scope {
         }
     }
 
-    Component.onCompleted: shellRoot.setSystemColorScheme(themeSettings.theme)
+    Process {
+        id: themeApplyProcess
+        onExited: exitCode => {
+            if (exitCode !== 0)
+                console.warn("Could not apply UI theme change; exit code was", exitCode);
+        }
+    }
+
+    Component.onCompleted: {
+        shellRoot.setSystemColorScheme(themeSettings.theme);
+        shellRoot.applyTheme(themeSettings.theme);
+    }
 
     NetworkStatus {
         id: networkStatus
@@ -110,6 +134,10 @@ Scope {
         function reveal(): void {
             shellRoot.temporarilyRevealed = true;
             revealTimer.restart();
+        }
+
+        function toggleBar(): void {
+            shellRoot.barVisible = !shellRoot.barVisible;
         }
 
         function toggleThemePicker(): void {

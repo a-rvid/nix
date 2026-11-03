@@ -31,6 +31,7 @@ let
       evil
       evil-commentary
       geiser
+      gruvbox-theme
       lsp-mode
       magit
       marginalia
@@ -75,31 +76,14 @@ in
     (lib.mkIf config.my.desktop.enable {
       environment.systemPackages = [
         configuredEmacs
+        pkgs.vscodium
+        pkgs.spotify
       ]
       ++ (with pkgs; [
         grim
         slurp
         wl-clipboard
       ]);
-
-      system.activationScripts.emacsConfig = {
-        deps = [ "users" ];
-        text = ''
-          userHome=${config.users.users.${config.my.username}.home}
-          initFile="$userHome/.emacs.d/init.el"
-          install -d -o ${config.my.username} \
-            -g ${config.users.users.${config.my.username}.group} \
-            -m 0755 "$userHome/.emacs.d"
-
-          if [ ! -e "$initFile" ] || \
-             { [ -L "$initFile" ] && [[ "$(readlink "$initFile")" == /nix/store/* ]]; }; then
-            ln -sfnT ${../../home/.config/emacs/init.el} "$initFile"
-            chown -h ${config.my.username}:${config.users.users.${config.my.username}.group} "$initFile"
-          else
-            echo "Keeping existing Emacs init file at $initFile" >&2
-          fi
-        '';
-      };
 
       programs.firefox = {
         enable = true;
@@ -133,7 +117,7 @@ in
             Locked = true;
           };
           FirefoxSuggest = {
-            WebSuggestions = false;
+            WebSuggestions = true;
             SponsoredSuggestions = false;
             ImproveSuggest = false;
             Locked = true;
@@ -162,7 +146,7 @@ in
             ];
             Default = "DuckDuckGo";
           };
-          SearchSuggestEnabled = false;
+          SearchSuggestEnabled = true;
           ShowHomeButton = true;
           UserMessaging = {
             ExtensionRecommendations = false;
@@ -170,6 +154,30 @@ in
             SkipOnboarding = true;
             MoreFromMozilla = false;
             FirefoxLabs = true;
+          };
+          Preferences."browser.cache.disk.enable" = {
+            Value = false;
+            Status = "locked";
+          };
+          Preferences."browser.cache.disk.capacity" = {
+            Value = 0;
+            Status = "locked";
+          };
+          Preferences."browser.cache.disk.smart_size.enabled" = {
+            Value = false;
+            Status = "locked";
+          };
+          Preferences."browser.cache.offline.enable" = {
+            Value = false;
+            Status = "locked";
+          };
+          Preferences."browser.search.suggest.enabled" = {
+            Value = true;
+            Status = "locked";
+          };
+          Preferences."browser.urlbar.suggest.searches" = {
+            Value = true;
+            Status = "locked";
           };
           Preferences."toolkit.legacyUserProfileCustomizations.stylesheets" = {
             Value = true;

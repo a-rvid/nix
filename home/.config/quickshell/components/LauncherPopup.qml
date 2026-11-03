@@ -12,6 +12,8 @@ PopupWindow {
     required property bool primaryScreen
     required property string iconFont
     property int selectedIndex: 0
+    readonly property int totalEntries: DesktopEntries.applications.values.length
+    readonly property bool hasQuery: searchInput.text.trim().length > 0
 
     readonly property var matchingEntries: {
         const query = searchInput.text.trim().toLocaleLowerCase();
@@ -32,7 +34,9 @@ PopupWindow {
 
     implicitWidth: 520
     implicitHeight: 440
-    visible: shell.launcherVisible && primaryScreen
+    visible: shell.launcherVisible
+    property real popupOpacity: visible ? 1 : 0
+    property real popupScale: visible ? 1 : 0.98
     grabFocus: true
 
     anchor.window: root.anchorWindow
@@ -61,7 +65,7 @@ PopupWindow {
             searchInput.text = "";
             selectedIndex = 0;
             searchInput.forceActiveFocus();
-        } else if (shell.launcherVisible && primaryScreen) {
+        } else if (shell.launcherVisible) {
             shell.launcherVisible = false;
         }
     }
@@ -73,10 +77,20 @@ PopupWindow {
     }
 
     Rectangle {
+        id: panel
         anchors.fill: parent
-        radius: 12
-        color: root.surface
-        border.color: root.accent
+        opacity: root.popupOpacity
+        scale: root.popupScale
+        transformOrigin: Item.Center
+        Behavior on opacity {
+            NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+        }
+        Behavior on scale {
+            NumberAnimation { duration: 190; easing.type: Easing.OutCubic }
+        }
+        radius: 18
+        color: Qt.rgba(root.surface.r, root.surface.g, root.surface.b, 0.9)
+        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35)
         border.width: 1
 
         Text {
@@ -89,13 +103,25 @@ PopupWindow {
             opacity: 0.72
         }
 
+        Text {
+            x: 20
+            y: 30
+            text: root.hasQuery
+                ? root.matchingEntries.length + " matches"
+                : root.totalEntries + " applications"
+            color: root.foreground
+            opacity: 0.56
+            font.family: root.iconFont
+            font.pixelSize: 10
+        }
+
         Rectangle {
             id: searchBox
             x: 16
-            y: 42
+            y: 50
             width: parent.width - 32
             height: 44
-            radius: 7
+            radius: 10
             color: Qt.rgba(
                 root.foreground.r,
                 root.foreground.g,
@@ -167,9 +193,19 @@ PopupWindow {
                 required property var modelData
                 required property int index
                 width: appList.width
-                height: 48
-                radius: 7
-                color: index === root.selectedIndex ? root.accent : "transparent"
+                height: 50
+                radius: 10
+                color: index === root.selectedIndex
+                    ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.88)
+                    : delegateHover.hovered
+                        ? Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.07)
+                        : "transparent"
+                border.width: index === root.selectedIndex ? 1 : 0
+                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.95)
+
+                Behavior on color {
+                    NumberAnimation { duration: 120 }
+                }
 
                 Rectangle {
                     x: 8
@@ -235,6 +271,7 @@ PopupWindow {
                 }
 
                 MouseArea {
+                    id: delegateHover
                     anchors.fill: parent
                     hoverEnabled: true
                     onEntered: root.selectedIndex = index
@@ -246,7 +283,7 @@ PopupWindow {
         Text {
             id: emptyMessage
             anchors.centerIn: appList
-            text: "No matching applications"
+            text: root.hasQuery ? "No matching applications" : "Start typing to search"
             color: root.foreground
             opacity: 0.65
             font.family: root.iconFont

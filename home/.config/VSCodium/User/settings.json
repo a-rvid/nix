@@ -1,0 +1,53 @@
+{
+  "window.autoDetectColorScheme": true,
+  "window.titleBarStyle": "custom",
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.preferredDarkColorTheme": "Default Dark+",
+  "workbench.preferredLightColorTheme": "Default Light+",
+  "workbench.colorCustomizations": {
+    "[Default Dark+]": {
+      "editor.background": "#2E3440",
+      "editor.foreground": "#D8DEE9",
+      "sideBar.background": "#2E3440",
+      "sideBar.foreground": "#D8DEE9",
+      "activityBar.background": "#3B4252",
+      "activityBar.foreground": "#ECEFF4",
+      "titleBar.activeBackground": "#2E3440",
+      "titleBar.activeForeground": "#D8DEE9",
+      "tab.activeBackground": "#3B4252",
+      "tab.activeForeground": "#ECEFF4",
+      "tab.inactiveBackground": "#2E3440",
+      "tab.inactiveForeground": "#88C0D0",
+      "editorGroupHeader.tabsBackground": "#2E3440",
+      "statusBar.background": "#3B4252",
+      "statusBar.foreground": "#ECEFF4",
+      "list.activeSelectionBackground": "#88C0D0",
+      "list.activeSelectionForeground": "#2E3440",
+      "list.hoverBackground": "#434C5E",
+      "scrollbarSlider.background": "#4C566A",
+      "scrollbarSlider.hoverBackground": "#5E81AC"
+    },
+    "[Default Light+]": {
+      "editor.background": "#FBF1C7",
+      "editor.foreground": "#3C3836",
+      "sideBar.background": "#FBF1C7",
+      "sideBar.foreground": "#3C3836",
+      "activityBar.background": "#F5E8B5",
+      "activityBar.foreground": "#3C3836",
+      "titleBar.activeBackground": "#FBF1C7",
+      "titleBar.activeForeground": "#3C3836",
+      "tab.activeBackground": "#F5E8B5",
+      "tab.activeForeground": "#3C3836",
+      "tab.inactiveBackground": "#FBF1C7",
+      "tab.inactiveForeground": "#B57614",
+      "editorGroupHeader.tabsBackground": "#FBF1C7",
+      "statusBar.background": "#F5E8B5",
+      "statusBar.foreground": "#3C3836",
+      "list.activeSelectionBackground": "#B57614",
+      "list.activeSelectionForeground": "#FBF1C7",
+      "list.hoverBackground": "#E6D3A0",
+      "scrollbarSlider.background": "#BDAE7A",
+      "scrollbarSlider.hoverBackground": "#D08770"
+    }
+  }
+}

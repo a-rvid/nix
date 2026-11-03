@@ -3,6 +3,7 @@
   imports = [
     inputs.disko.nixosModules.disko
     inputs.nixos-hardware.nixosModules.asus-zephyrus-ga401
+    inputs.home-manager.nixosModules.home-manager
     ./hardware.nix
     ./disko.nix
     ./networkmanager.nix
@@ -25,5 +26,12 @@
     nvidia.enable = true;
     preservation.enable = true;
     secrets.enable = true;
+  };
+
+  home-manager = {
+    useUserPackages = true;
+    useGlobalPkgs = true;
+    backupFileExtension = ".backup";
+    users.${config.my.username} = import ../../modules/home-manager.nix;
   };
 }

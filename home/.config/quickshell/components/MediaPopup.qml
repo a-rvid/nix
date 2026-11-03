@@ -16,6 +16,8 @@ PopupWindow {
     implicitWidth: 340
     implicitHeight: 112
     visible: opened && player !== null
+    property real popupOpacity: visible ? 1 : 0
+    property real popupScale: visible ? 1 : 0.97
     grabFocus: true
 
     anchor.window: root.anchorWindow
@@ -38,9 +40,18 @@ PopupWindow {
 
     Rectangle {
         anchors.fill: parent
-        radius: 9
-        color: root.surface
-        border.color: root.accent
+        opacity: root.popupOpacity
+        scale: root.popupScale
+        transformOrigin: Item.Center
+        Behavior on opacity {
+            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+        }
+        Behavior on scale {
+            NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+        }
+        radius: 12
+        color: Qt.rgba(root.surface.r, root.surface.g, root.surface.b, 0.92)
+        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
         border.width: 1
         focus: true
 
@@ -128,8 +139,13 @@ PopupWindow {
                     required property var modelData
                     text: String.fromCodePoint(modelData.glyph)
                     color: root.foreground
+                    opacity: controlHover.hovered ? 1 : 0.85
                     font.family: root.iconFont
                     font.pixelSize: 18
+
+                    HoverHandler {
+                        id: controlHover
+                    }
 
                     MouseArea {
                         anchors.fill: parent

@@ -20,6 +20,11 @@ Scope {
     readonly property color accent: shell.themeName === "gruvbox" ? "#b57614" : "#88c0d0"
     readonly property color surface: shell.themeName === "gruvbox" ? "#fbf1c7" : "#2e3440"
     readonly property color danger: "#bf616a"
+    readonly property color chrome: Qt.rgba(surface.r, surface.g, surface.b, 0.62)
+    readonly property color outline: Qt.rgba(accent.r, accent.g, accent.b, 0.22)
+    readonly property int barHeight: 30
+    readonly property int themeTransitionMs: 190
+    readonly property int workspaceTransitionMs: 140
     readonly property bool primaryScreen: Quickshell.screens.values.length > 0
         && screen.name === Quickshell.screens.values[0].name
 
@@ -50,6 +55,9 @@ Scope {
         }
         exclusionMode: ExclusionMode.Ignore
         color: root.shell.themeName === "gruvbox" ? "#fbf1c7" : "#2e3440"
+        Behavior on color {
+            ColorAnimation { duration: root.themeTransitionMs }
+        }
         WlrLayershell.layer: WlrLayer.Background
     }
 
@@ -61,21 +69,35 @@ Scope {
             left: true
             right: true
         }
-        implicitHeight: 28
-        exclusiveZone: visible ? 28 : 0
-        visible: !root.shell.hasWindows || root.shell.temporarilyRevealed
+        implicitHeight: root.barHeight
+        exclusiveZone: visible ? root.barHeight : 0
+        visible: root.shell.barVisible || !root.shell.hasWindows || root.shell.temporarilyRevealed
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Top
 
         Item {
             anchors.fill: parent
 
+            Rectangle {
+                anchors.fill: parent
+                color: root.chrome
+                border.color: root.outline
+                border.width: 1
+                Behavior on color {
+                    ColorAnimation { duration: root.themeTransitionMs }
+                }
+                Behavior on border.color {
+                    ColorAnimation { duration: root.themeTransitionMs }
+                }
+            }
+
             Text {
                 anchors.left: parent.left
                 anchors.leftMargin: 14
                 anchors.verticalCenter: parent.verticalCenter
-                text: Qt.formatDateTime(root.clock.date, "MMMM d, HH:mm")
+                text: Qt.formatDateTime(new Date(root.clock.date.getTime() + 30000), "MMMM d, HH:mm")
                 color: root.foreground
+                opacity: 0.92
                 font.family: root.shell.iconFont
                 font.pixelSize: 12
                 verticalAlignment: Text.AlignVCenter
@@ -83,7 +105,7 @@ Scope {
 
             Row {
                 anchors.centerIn: parent
-                spacing: 4
+                spacing: 5
 
                 Repeater {
                     model: [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -98,12 +120,24 @@ Scope {
 
                         width: shown ? 28 : 0
                         height: 24
-                        visible: shown
+                        opacity: shown ? 1 : 0
+
+                        Behavior on width {
+                            NumberAnimation { duration: root.workspaceTransitionMs; easing.type: Easing.OutCubic }
+                        }
+                        Behavior on opacity {
+                            NumberAnimation { duration: root.workspaceTransitionMs; easing.type: Easing.OutCubic }
+                        }
 
                         Rectangle {
                             anchors.fill: parent
                             radius: 5
-                            color: parent.active ? root.accent : "transparent"
+                            color: parent.active
+                                ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.95)
+                                : "transparent"
+                            Behavior on color {
+                                ColorAnimation { duration: root.workspaceTransitionMs }
+                            }
                         }
 
                         Text {
@@ -130,7 +164,7 @@ Scope {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 10
+                spacing: 8
 
                 Item {
                     id: mediaButton
@@ -242,7 +276,11 @@ Scope {
                     height: 24
 
                     readonly property var battery: UPower.displayDevice
-                    readonly property int percentage: Math.round(battery?.percentage ?? 0)
+                    readonly property int percentage: {
+                        const raw = Number(battery?.percentage ?? 0);
+                        const scaled = raw > 1 ? raw : raw * 100;
+                        return Math.max(0, Math.min(100, Math.round(scaled)));
+                    }
                     readonly property bool charging: battery?.state === UPowerDeviceState.Charging
 
                     function glyph() {
@@ -260,12 +298,19 @@ Scope {
                     }
 
                     function remaining() {
+                        if (!battery) return "Battery unavailable";
                         const seconds = charging
                             ? (battery?.timeToFull ?? 0)
                             : (battery?.timeToEmpty ?? 0);
                         if (seconds <= 0) return "Time remaining unavailable";
                         const minutes = Math.round(seconds / 60);
                         return Math.floor(minutes / 60) + "h " + (minutes % 60) + "m remaining";
+                    }
+
+                    function summary() {
+                        if (!battery) return "Battery unavailable";
+                        const state = charging ? "Charging" : "Discharging";
+                        return batteryWidget.percentage + "% · " + state + " · " + batteryWidget.remaining();
                     }
 
                     Text {
@@ -283,7 +328,7 @@ Scope {
                     }
 
                     ToolTip.visible: batteryHover.hovered
-                    ToolTip.text: batteryWidget.percentage + "% · " + batteryWidget.remaining()
+                    ToolTip.text: batteryWidget.summary()
                 }
 
                 Row {
